@@ -3,6 +3,8 @@ FROM node:22-slim AS builder
 
 WORKDIR /app
 
+RUN ls -lah
+
 COPY package*.json ./
 RUN npm install
 
@@ -29,6 +31,5 @@ EXPOSE 3000
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
-# Use exec form to ensure proper signal handling
 ENTRYPOINT ["./entrypoint.sh"]
 CMD []
