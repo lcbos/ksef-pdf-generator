@@ -1,8 +1,7 @@
 import pdfMake, { TCreatedPdf } from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { Content, TDocumentDefinitions } from 'pdfmake/interfaces';
-import { generateStyle, getValue, hasValue } from '../shared/PDF-functions';
-import { TRodzajFaktury } from '../shared/consts/FA.const';
+import { generateStyle, getValue, hasValue } from '@shared/PDF-functions';
+import { ZamowienieKorekta } from './enums/invoice.enums';
 import { generateAdnotacje } from './generators/FA2/Adnotacje';
 import { generateDodatkoweInformacje } from './generators/FA2/DodatkoweInformacje';
 import { generatePlatnosc } from './generators/FA2/Platnosc';
@@ -17,18 +16,22 @@ import { generateDaneFaKorygowanej } from './generators/common/DaneFaKorygowanej
 import { generateNaglowek } from './generators/common/Naglowek';
 import { generateRozliczenie } from './generators/common/Rozliczenie';
 import { generateStopka } from './generators/common/Stopka';
-import { Faktura } from './types/fa2.types';
-import { ZamowienieKorekta } from './enums/invoice.enums';
 import { AdditionalDataTypes } from './types/common.types';
-import { Position } from '../shared/enums/common.enum';
+import { Faktura } from './types/fa2.types';
+import { generateWatermark } from '@shared/consts/watermark';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+import { TRodzajFaktury } from '@shared/consts/FA.const';
+import { Position } from '@shared/enums/common.enum';
+import i18n from 'i18next';
 
-pdfMake.vfs = pdfFonts.vfs;
+pdfMake.addVirtualFileSystem(pdfFonts);
 
 export function generateFA2(invoice: Faktura, additionalData: AdditionalDataTypes): TCreatedPdf {
   const isKOR_RABAT: boolean =
     invoice.Fa?.RodzajFaktury?._text == TRodzajFaktury.KOR && hasValue(invoice.Fa?.OkresFaKorygowanej);
   const rabatOrRowsInvoice: Content = isKOR_RABAT ? generateRabat(invoice.Fa!) : generateWiersze(invoice.Fa!);
   const docDefinition: TDocumentDefinitions = {
+    ...generateWatermark(additionalData?.watermark),
     content: [
       ...generateNaglowek(invoice.Fa, additionalData),
       generateDaneFaKorygowanej(invoice.Fa),
@@ -53,7 +56,7 @@ export function generateFA2(invoice: Faktura, additionalData: AdditionalDataType
     ],
     footer: (currentPage, pageCount) => {
       return {
-        text: currentPage.toString() + ' z ' + pageCount,
+        text: `${currentPage.toString()} ${i18n.t('invoice.footer.pagesTotal')} ${pageCount}`,
         alignment: Position.RIGHT,
         margin: [0, 0, 40, 0],
       };
