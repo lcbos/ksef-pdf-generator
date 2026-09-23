@@ -9,7 +9,7 @@ RUN npm install
 COPY . .
 
 RUN npm run build
-RUN npx tsc -p tsconfig.server.json --outDir dist
+RUN npx tsc -p tsconfig.server.json --outDir dist && npx tsc-alias -p tsconfig.server.json --outDir dist
 RUN echo '{"type": "commonjs"}' > dist/package.json
 
 RUN mkdir -p dist/server && cp src/server/worker-bootstrap.cjs dist/server/worker-bootstrap.cjs
